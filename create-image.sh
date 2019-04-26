@@ -1,0 +1,1 @@
+docker build . --file ./frontend/Dockerfile --tag gcr.io/team-lgtm-dev/frontend
