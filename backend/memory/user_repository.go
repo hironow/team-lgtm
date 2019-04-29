@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -18,7 +19,7 @@ func NewUserRepository() user.Repository {
 	}
 }
 
-func (repo *userRepository) Get(id string) (*user.User, error) {
+func (repo *userRepository) Get(ctx context.Context, id string) (*user.User, error) {
 	repo.mtx.Lock()
 	defer repo.mtx.Unlock()
 
@@ -30,7 +31,7 @@ func (repo *userRepository) Get(id string) (*user.User, error) {
 	return nil, fmt.Errorf("entity not found")
 }
 
-func (repo *userRepository) Put(u *user.User) error {
+func (repo *userRepository) Put(ctx context.Context, u *user.User) error {
 	repo.mtx.Lock()
 	defer repo.mtx.Unlock()
 

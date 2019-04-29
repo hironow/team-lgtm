@@ -6,6 +6,10 @@ type User struct {
 
 func NewUser() *User {
 	return &User{
-		ID: "dummy user id",
+		ID: generateID(),
 	}
+}
+
+func generateID() string {
+	return "dummy user id"
 }

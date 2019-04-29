@@ -1,10 +1,12 @@
 package memory
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
 	"github.com/hironow/team-lgtm/backend/todo"
+	"github.com/hironow/team-lgtm/backend/user"
 )
 
 type todoRepository struct {
@@ -18,7 +20,7 @@ func NewTodoRepository() todo.Repository {
 	}
 }
 
-func (repo *todoRepository) Get(id string) (*todo.Todo, error) {
+func (repo *todoRepository) Get(ctx context.Context, id string, user *user.User) (*todo.Todo, error) {
 	repo.mtx.Lock()
 	defer repo.mtx.Unlock()
 
@@ -30,7 +32,7 @@ func (repo *todoRepository) Get(id string) (*todo.Todo, error) {
 	return nil, fmt.Errorf("entity not found")
 }
 
-func (repo *todoRepository) Put(t *todo.Todo) error {
+func (repo *todoRepository) Put(ctx context.Context, t *todo.Todo, user *user.User) error {
 	repo.mtx.Lock()
 	defer repo.mtx.Unlock()
 

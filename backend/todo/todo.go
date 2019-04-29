@@ -1,5 +1,7 @@
 package todo
 
+import "github.com/hironow/team-lgtm/backend/user"
+
 type Todo struct {
 	ID     string
 	Text   string
@@ -7,8 +9,13 @@ type Todo struct {
 	UserID string
 }
 
-func NewTodo() *Todo {
+func NewTodo(user *user.User) *Todo {
 	return &Todo{
-		ID: "dummy todo id",
+		ID: generateID(),
+		UserID: user.ID,
 	}
+}
+
+func generateID() string {
+	return "dummy todo id"
 }
