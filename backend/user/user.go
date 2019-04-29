@@ -1,7 +1,10 @@
 package user
 
+import "github.com/google/uuid"
+
 type User struct {
-	ID string
+	ID   string
+	Name string
 }
 
 func NewUser() *User {
@@ -11,5 +14,5 @@ func NewUser() *User {
 }
 
 func generateID() string {
-	return "dummy user id"
+	return uuid.New().String()
 }

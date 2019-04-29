@@ -21,7 +21,7 @@ func main() {
 	router := chi.NewRouter()
 
 	router.Handle("/", handler.Playground("TeamLGTM GraphQL playground", "/query"))
-	router.Handle("/query", handler.GraphQL(gql.NewExecutableSchema(gql.Config{Resolvers: &gql.Resolver{}})))
+	router.Handle("/query", handler.GraphQL(gql.NewExecutableSchema(gql.Config{Resolvers: gql.NewResolver()})))
 
 	log.Printf("connect to http://localhost:%s/ for TeamLGTM GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))

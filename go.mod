@@ -9,6 +9,7 @@ require (
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/pprof v0.0.0-20190404155422-f8f10df84213 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/vektah/gqlparser v1.1.2
 	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734 // indirect

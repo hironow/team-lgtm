@@ -13,5 +13,7 @@ resolver:
   filename: resolver.go
   type: Resolver
 models:
+  User:
+    model: github.com/hironow/team-lgtm/backend/user.User
   Todo:
     model: github.com/hironow/team-lgtm/backend/todo.Todo

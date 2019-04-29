@@ -12,6 +12,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/hironow/team-lgtm/backend/todo"
+	"github.com/hironow/team-lgtm/backend/user"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -71,7 +72,7 @@ type QueryResolver interface {
 	Todos(ctx context.Context) ([]todo.Todo, error)
 }
 type TodoResolver interface {
-	User(ctx context.Context, obj *todo.Todo) (*User, error)
+	User(ctx context.Context, obj *todo.Todo) (*user.User, error)
 }
 
 type executableSchema struct {
@@ -535,13 +536,13 @@ func (ec *executionContext) _Todo_user(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*User)
+	res := resTmp.(*user.User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *User) graphql.Marshaler {
+func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *user.User) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -568,7 +569,7 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_name(ctx context.Context, field graphql.CollectedField, obj *User) graphql.Marshaler {
+func (ec *executionContext) _User_name(ctx context.Context, field graphql.CollectedField, obj *user.User) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1586,7 +1587,7 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 
 var userImplementors = []string{"User"}
 
-func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *User) graphql.Marshaler {
+func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *user.User) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, userImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -1940,11 +1941,11 @@ func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtm
 	return ec._Todo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐUser(ctx context.Context, sel ast.SelectionSet, v User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v user.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐUser(ctx context.Context, sel ast.SelectionSet, v *User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v *user.User) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
