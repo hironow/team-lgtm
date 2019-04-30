@@ -10,7 +10,7 @@ RUN go mod download
 
 # Build binary
 COPY . .
-RUN cd backend && CGO_ENABLED=0 GOOS=linux go build -v -o backend
+RUN cd backend && CGO_ENABLED=0 GOOS=linux go build -v -o backend gql/server/server.go
 
 # Use a Docker multi-stage build to create a lean production image.
 # https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
