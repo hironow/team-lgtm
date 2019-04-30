@@ -7,6 +7,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/hironow/team-lgtm/backend/clouddatastore"
+	"github.com/hironow/team-lgtm/backend/gql/middleware"
 	"github.com/hironow/team-lgtm/backend/memory"
 	"github.com/hironow/team-lgtm/backend/todo"
 	"github.com/hironow/team-lgtm/backend/user"
@@ -82,6 +83,9 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input NewTodo) (*todo
 	// }
 	// r.todos = append(r.todos, *t)
 	// return t, nil
+
+	uID := middleware.ForContext(ctx)
+	log.Printf("uID: %s", uID)
 
 	u, err := r.userRepository.Get(ctx, input.UserID)
 	if err != nil {

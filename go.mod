@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	cloud.google.com/go v0.37.4
+	firebase.google.com/go v3.7.0+incompatible
 	github.com/99designs/gqlgen v0.8.3
 	github.com/go-chi/chi v4.0.2+incompatible
 	github.com/golang/protobuf v1.3.1 // indirect
