@@ -115,7 +115,7 @@ func (r *queryResolver) Todos(ctx context.Context, cursor *string) (*TodosReply,
 	}
 	log.Printf("%+v", u)
 
-	todos, nextCursor, err := r.todoRepository.List(ctx, "", 5, u)
+	todos, nextCursor, err := r.todoRepository.List(ctx, "", 3, u)
 	if err != nil {
 		return nil, err
 	}
