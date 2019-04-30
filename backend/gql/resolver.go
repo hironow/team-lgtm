@@ -4,6 +4,8 @@ package gql
 import (
 	"context"
 
+	"cloud.google.com/go/datastore"
+	"github.com/hironow/team-lgtm/backend/clouddatastore"
 	"github.com/hironow/team-lgtm/backend/memory"
 	"github.com/hironow/team-lgtm/backend/todo"
 	"github.com/hironow/team-lgtm/backend/user"
@@ -16,21 +18,39 @@ type Resolver struct {
 	todoRepository todo.Repository
 }
 
-func NewResolver() ResolverRoot {
-	userRepository := memory.NewUserRepository()
-	todoRepository := memory.NewTodoRepository()
+func NewResolver(dsClient *datastore.Client) (ResolverRoot, error) {
+	var (
+		userRepository user.Repository
+		todoRepository todo.Repository
+	)
+	if dsClient != nil {
+		var err error
+		userRepository, err = clouddatastore.NewUserRepository(dsClient)
+		if err != nil {
+			return nil, err
+		}
+		todoRepository, err = clouddatastore.NewTodoRepository(dsClient)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		userRepository = memory.NewUserRepository()
+		todoRepository = memory.NewTodoRepository()
+	}
 
 	// dummy user
-	u := &user.User{ID: "user1"}
-	ctx := context.Background()
-	if err := userRepository.Put(ctx, u); err != nil {
-		panic(err)
+	{
+		u := &user.User{ID: "user1"}
+		ctx := context.Background()
+		if err := userRepository.Put(ctx, u); err != nil {
+			panic(err)
+		}
 	}
 
 	return &Resolver{
 		userRepository: userRepository,
 		todoRepository: todoRepository,
-	}
+	}, nil
 }
 
 func (r *Resolver) Mutation() MutationResolver {

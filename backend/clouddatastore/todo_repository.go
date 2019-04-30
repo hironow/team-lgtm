@@ -12,12 +12,8 @@ type todoRepository struct {
 	dsClient *datastore.Client
 }
 
-func NewTodoRepository(ctx context.Context) (todo.Repository, error) {
-	client, err := datastore.NewClient(ctx, "project-id")
-	if err != nil {
-		return nil, err
-	}
-	return &todoRepository{dsClient: client}, nil
+func NewTodoRepository(dsClient *datastore.Client) (todo.Repository, error) {
+	return &todoRepository{dsClient: dsClient}, nil
 }
 
 func (repo *todoRepository) key(id string, user *user.User) *datastore.Key {

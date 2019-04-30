@@ -11,12 +11,8 @@ type userRepository struct {
 	dsClient *datastore.Client
 }
 
-func NewUserRepository(ctx context.Context) (user.Repository, error) {
-	client, err := datastore.NewClient(ctx, "project-id")
-	if err != nil {
-		return nil, err
-	}
-	return &userRepository{dsClient: client}, nil
+func NewUserRepository(dsClient *datastore.Client) (user.Repository, error) {
+	return &userRepository{dsClient: dsClient}, nil
 }
 
 func (repo *userRepository) key(id string) *datastore.Key {
