@@ -3,6 +3,7 @@ package gql
 
 import (
 	"context"
+	"log"
 
 	"cloud.google.com/go/datastore"
 	"github.com/hironow/team-lgtm/backend/clouddatastore"
@@ -38,9 +39,11 @@ func NewResolver(dsClient *datastore.Client) (ResolverRoot, error) {
 		todoRepository = memory.NewTodoRepository()
 	}
 
+	// check user
+
 	// dummy user
 	{
-		u := &user.User{ID: "user1"}
+		u := &user.User{ID: "user1", Name: "ユーザ壱"}
 		ctx := context.Background()
 		if err := userRepository.Put(ctx, u); err != nil {
 			panic(err)
@@ -94,10 +97,19 @@ func (r *mutationResolver) SignIn(ctx context.Context, input NewSignIn) (*user.U
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Todos(ctx context.Context) ([]todo.Todo, error) {
+func (r *queryResolver) Todos(ctx context.Context, cursor *string) ([]todo.Todo, error) {
 	// return r.todos, nil
 
-	return nil, nil
+	log.Printf("cursor: %s", *cursor)
+
+	u := &user.User{ID: "user1"}
+	todos, nextCursor, err := r.todoRepository.List(ctx, "", 5, u)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("next cursor: %s", nextCursor)
+
+	return todos, nil
 }
 
 type todoResolver struct{ *Resolver }

@@ -1,6 +1,8 @@
 package todo
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/hironow/team-lgtm/backend/user"
 )
@@ -12,13 +14,13 @@ type Todo struct {
 	UserID string
 }
 
-func NewTodo(user *user.User) *Todo {
+func NewTodo(u *user.User) *Todo {
 	return &Todo{
-		ID:     generateID(),
-		UserID: user.ID,
+		ID:     generateID(u),
+		UserID: u.ID,
 	}
 }
 
-func generateID() string {
-	return uuid.New().String()
+func generateID(u *user.User) string {
+	return fmt.Sprintf("%s_%s", u.ID, uuid.New().String())
 }

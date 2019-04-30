@@ -35,3 +35,7 @@ func (repo *userRepository) Put(ctx context.Context, u *user.User) error {
 	}
 	return nil
 }
+
+func (repo *userRepository) List(ctx context.Context, cursor string, limit int) ([]user.User, string, error) {
+	panic("todo")
+}
