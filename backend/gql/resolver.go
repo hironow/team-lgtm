@@ -42,7 +42,7 @@ func NewResolver(dsClient *datastore.Client) (ResolverRoot, error) {
 
 	// check user
 	{
-		users, _,  err := userRepository.List(context.Background(), "", 10)
+		users, _, err := userRepository.List(context.Background(), "", 10)
 		if err != nil {
 			panic(err)
 		}
@@ -99,10 +99,30 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input NewTodo) (*todo
 	return t, nil
 }
 func (r *mutationResolver) SignUp(ctx context.Context, input NewSignUp) (*user.User, error) {
-	panic("not implemented")
+	uID := middleware.ForContext(ctx)
+	log.Printf("uID: %s", uID)
+
+	// TODO: uID -> userID
+
+	u := user.NewUser()
+	u.Name = input.Name
+	if err := r.userRepository.Put(ctx, u); err != nil {
+		return nil, err
+	}
+	return u, nil
 }
 func (r *mutationResolver) SignIn(ctx context.Context, input NewSignIn) (*user.User, error) {
-	panic("not implemented")
+	uID := middleware.ForContext(ctx)
+	log.Printf("uID: %s", uID)
+
+	// TODO: uID -> userID
+
+	userID := "user1"
+	u, err := r.userRepository.Get(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
 }
 
 type queryResolver struct{ *Resolver }
@@ -112,7 +132,7 @@ func (r *queryResolver) Todos(ctx context.Context, cursor *string) (*TodosReply,
 
 	log.Printf("cursor: %s", *cursor)
 
-	userID:= "user1"
+	userID := "user1"
 	u, err := r.userRepository.Get(ctx, userID)
 	if err != nil {
 		return nil, err
