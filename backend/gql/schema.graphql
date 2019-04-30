@@ -24,7 +24,7 @@ input NewSignUp {
 }
 
 input NewSignIn {
-    _: Boolean
+    name: String
 }
 
 type Mutation {

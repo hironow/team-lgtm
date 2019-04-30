@@ -282,7 +282,7 @@ input NewSignUp {
 }
 
 input NewSignIn {
-    _: Boolean
+    name: String
 }
 
 type Mutation {
@@ -1567,9 +1567,9 @@ func (ec *executionContext) unmarshalInputNewSignIn(ctx context.Context, v inter
 
 	for k, v := range asMap {
 		switch k {
-		case "_":
+		case "name":
 			var err error
-			it._, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

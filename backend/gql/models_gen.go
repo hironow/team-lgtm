@@ -3,7 +3,7 @@
 package gql
 
 type NewSignIn struct {
-	_ *bool `json:"_"`
+	Name *string `json:"name"`
 }
 
 type NewSignUp struct {
