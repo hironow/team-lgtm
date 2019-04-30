@@ -65,11 +65,18 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input NewTodo) (*todo
 	}
 	return t, nil
 }
+func (r *mutationResolver) SignUp(ctx context.Context, input NewSignUp) (*user.User, error) {
+	panic("not implemented")
+}
+func (r *mutationResolver) SignIn(ctx context.Context, input NewSignIn) (*user.User, error) {
+	panic("not implemented")
+}
 
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Todos(ctx context.Context) ([]todo.Todo, error) {
 	// return r.todos, nil
+
 	return nil, nil
 }
 
