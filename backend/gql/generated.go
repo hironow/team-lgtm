@@ -46,6 +46,8 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Mutation struct {
 		CreateTodo func(childComplexity int, input NewTodo) int
+		SignIn     func(childComplexity int, innput NewSignIn) int
+		SignUp     func(childComplexity int, input NewSignUp) int
 	}
 
 	Query struct {
@@ -67,6 +69,8 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateTodo(ctx context.Context, input NewTodo) (*todo.Todo, error)
+	SignUp(ctx context.Context, input NewSignUp) (*user.User, error)
+	SignIn(ctx context.Context, innput NewSignIn) (*user.User, error)
 }
 type QueryResolver interface {
 	Todos(ctx context.Context) ([]todo.Todo, error)
@@ -101,6 +105,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(NewTodo)), true
+
+	case "Mutation.SignIn":
+		if e.complexity.Mutation.SignIn == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_signIn_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SignIn(childComplexity, args["innput"].(NewSignIn)), true
+
+	case "Mutation.SignUp":
+		if e.complexity.Mutation.SignUp == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_signUp_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SignUp(childComplexity, args["input"].(NewSignUp)), true
 
 	case "Query.Todos":
 		if e.complexity.Query.Todos == nil {
@@ -249,8 +277,18 @@ input NewTodo {
     userId: String!
 }
 
+input NewSignUp {
+    name: String!
+}
+
+input NewSignIn {
+    _: Boolean
+}
+
 type Mutation {
     createTodo(input: NewTodo!): Todo!
+    signUp(input: NewSignUp!): User!
+    signIn(innput: NewSignIn!): User!
 }`},
 )
 
@@ -264,6 +302,34 @@ func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, 
 	var arg0 NewTodo
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNNewTodo2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐNewTodo(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_signIn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 NewSignIn
+	if tmp, ok := rawArgs["innput"]; ok {
+		arg0, err = ec.unmarshalNNewSignIn2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐNewSignIn(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["innput"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_signUp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 NewSignUp
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNNewSignUp2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐNewSignUp(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -350,6 +416,74 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNTodo2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_signUp(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_signUp_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SignUp(rctx, args["input"].(NewSignUp))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*user.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_signIn(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_signIn_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SignIn(rctx, args["innput"].(NewSignIn))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*user.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1427,6 +1561,42 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputNewSignIn(ctx context.Context, v interface{}) (NewSignIn, error) {
+	var it NewSignIn
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "_":
+			var err error
+			it._, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewSignUp(ctx context.Context, v interface{}) (NewSignUp, error) {
+	var it NewSignUp
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewTodo(ctx context.Context, v interface{}) (NewTodo, error) {
 	var it NewTodo
 	var asMap = v.(map[string]interface{})
@@ -1476,6 +1646,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "createTodo":
 			out.Values[i] = ec._Mutation_createTodo(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "signUp":
+			out.Values[i] = ec._Mutation_signUp(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "signIn":
+			out.Values[i] = ec._Mutation_signIn(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -1876,6 +2056,14 @@ func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface
 
 func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalID(v)
+}
+
+func (ec *executionContext) unmarshalNNewSignIn2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐNewSignIn(ctx context.Context, v interface{}) (NewSignIn, error) {
+	return ec.unmarshalInputNewSignIn(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNNewSignUp2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐNewSignUp(ctx context.Context, v interface{}) (NewSignUp, error) {
+	return ec.unmarshalInputNewSignUp(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNNewTodo2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐNewTodo(ctx context.Context, v interface{}) (NewTodo, error) {

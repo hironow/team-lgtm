@@ -2,6 +2,14 @@
 
 package gql
 
+type NewSignIn struct {
+	_ *bool `json:"_"`
+}
+
+type NewSignUp struct {
+	Name string `json:"name"`
+}
+
 type NewTodo struct {
 	Text   string `json:"text"`
 	UserID string `json:"userId"`
