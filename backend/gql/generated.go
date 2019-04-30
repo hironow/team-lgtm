@@ -46,7 +46,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Mutation struct {
 		CreateTodo func(childComplexity int, input NewTodo) int
-		SignIn     func(childComplexity int, innput NewSignIn) int
+		SignIn     func(childComplexity int, input NewSignIn) int
 		SignUp     func(childComplexity int, input NewSignUp) int
 	}
 
@@ -70,7 +70,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateTodo(ctx context.Context, input NewTodo) (*todo.Todo, error)
 	SignUp(ctx context.Context, input NewSignUp) (*user.User, error)
-	SignIn(ctx context.Context, innput NewSignIn) (*user.User, error)
+	SignIn(ctx context.Context, input NewSignIn) (*user.User, error)
 }
 type QueryResolver interface {
 	Todos(ctx context.Context) ([]todo.Todo, error)
@@ -116,7 +116,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SignIn(childComplexity, args["innput"].(NewSignIn)), true
+		return e.complexity.Mutation.SignIn(childComplexity, args["input"].(NewSignIn)), true
 
 	case "Mutation.SignUp":
 		if e.complexity.Mutation.SignUp == nil {
@@ -288,7 +288,7 @@ input NewSignIn {
 type Mutation {
     createTodo(input: NewTodo!): Todo!
     signUp(input: NewSignUp!): User!
-    signIn(innput: NewSignIn!): User!
+    signIn(input: NewSignIn!): User!
 }`},
 )
 
@@ -314,13 +314,13 @@ func (ec *executionContext) field_Mutation_signIn_args(ctx context.Context, rawA
 	var err error
 	args := map[string]interface{}{}
 	var arg0 NewSignIn
-	if tmp, ok := rawArgs["innput"]; ok {
+	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNNewSignIn2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐNewSignIn(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["innput"] = arg0
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -472,7 +472,7 @@ func (ec *executionContext) _Mutation_signIn(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SignIn(rctx, args["innput"].(NewSignIn))
+		return ec.resolvers.Mutation().SignIn(rctx, args["input"].(NewSignIn))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
