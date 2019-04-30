@@ -40,12 +40,18 @@ func NewResolver(dsClient *datastore.Client) (ResolverRoot, error) {
 	}
 
 	// check user
+	{
+		users, _,  err := userRepository.List(context.Background(), "", 10)
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("%+v", users)
+	}
 
 	// dummy user
 	{
 		u := &user.User{ID: "user1", Name: "ユーザ壱"}
-		ctx := context.Background()
-		if err := userRepository.Put(ctx, u); err != nil {
+		if err := userRepository.Put(context.Background(), u); err != nil {
 			panic(err)
 		}
 	}
@@ -97,19 +103,25 @@ func (r *mutationResolver) SignIn(ctx context.Context, input NewSignIn) (*user.U
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Todos(ctx context.Context, cursor *string) ([]todo.Todo, error) {
+func (r *queryResolver) Todos(ctx context.Context, cursor *string) (*TodosReply, error) {
 	// return r.todos, nil
 
 	log.Printf("cursor: %s", *cursor)
 
-	u := &user.User{ID: "user1"}
+	userID:= "user1"
+	u, err := r.userRepository.Get(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("%+v", u)
+
 	todos, nextCursor, err := r.todoRepository.List(ctx, "", 5, u)
 	if err != nil {
 		return nil, err
 	}
 	log.Printf("next cursor: %s", nextCursor)
 
-	return todos, nil
+	return &TodosReply{Todos: todos, Cursor: nextCursor}, nil
 }
 
 type todoResolver struct{ *Resolver }
