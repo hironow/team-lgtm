@@ -40,11 +40,11 @@ func (repo *userRepository) Put(ctx context.Context, u *user.User) error {
 	return nil
 }
 
-func (repo *userRepository) List(ctx context.Context, cursor string, limit int) ([]user.User, string, error) {
+func (repo *userRepository) List(ctx context.Context, cursor string, limit int) ([]*user.User, string, error) {
 	repo.mtx.Lock()
 	defer repo.mtx.Unlock()
 
-	var users []user.User
+	var users []*user.User
 	var nextCursor string
 	for _, val := range repo.users {
 		if len(users) > limit+1 {
@@ -56,11 +56,11 @@ func (repo *userRepository) List(ctx context.Context, cursor string, limit int) 
 			if val.ID == cursor {
 				// cursor以降を取得対象にする
 				cursor = ""
-				users = append(users, *val)
+				users = append(users, val)
 			}
 			log.Printf("skip %s", val.ID)
 		} else {
-			users = append(users, *val)
+			users = append(users, val)
 		}
 	}
 

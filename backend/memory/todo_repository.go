@@ -41,11 +41,11 @@ func (repo *todoRepository) Put(ctx context.Context, t *todo.Todo, u *user.User)
 	return nil
 }
 
-func (repo *todoRepository) List(ctx context.Context, cursor string, limit int, u *user.User) ([]todo.Todo, string, error) {
+func (repo *todoRepository) List(ctx context.Context, cursor string, limit int, u *user.User) ([]*todo.Todo, string, error) {
 	repo.mtx.Lock()
 	defer repo.mtx.Unlock()
 
-	var todos []todo.Todo
+	var todos []*todo.Todo
 	var nextCursor string
 	for _, val := range repo.todos {
 		if len(todos) > limit+1 {
@@ -57,12 +57,12 @@ func (repo *todoRepository) List(ctx context.Context, cursor string, limit int, 
 			if val.ID == cursor {
 				// cursor以降を取得対象にする
 				cursor = ""
-				todos = append(todos, *val)
+				todos = append(todos, val)
 			}
 			log.Printf("skip %s", val.ID)
 		} else {
 			if val.UserID == u.ID {
-				todos = append(todos, *val)
+				todos = append(todos, val)
 			}
 		}
 	}

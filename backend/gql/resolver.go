@@ -148,6 +148,20 @@ func (r *queryResolver) Todos(ctx context.Context, cursor *string) (*TodosReply,
 	return &TodosReply{Todos: todos, Cursor: nextCursor}, nil
 }
 
+func (r *queryResolver) Me(ctx context.Context) (*user.User, error) {
+	uID := middleware.ForContext(ctx)
+	log.Printf("uID: %s", uID)
+
+	// TODO: uID -> userID
+
+	userID := "user1"
+	u, err := r.userRepository.Get(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
 type todoResolver struct{ *Resolver }
 
 func (r *todoResolver) User(ctx context.Context, obj *todo.Todo) (*user.User, error) {

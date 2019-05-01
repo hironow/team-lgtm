@@ -11,12 +11,13 @@ type User {
 }
 
 type TodosReply {
-    todos: [Todo!]
+    todos: [Todo]!
     cursor: String!
 }
 
 type Query {
     todos(cursor: String): TodosReply!
+    me: User
 }
 
 input NewTodo {

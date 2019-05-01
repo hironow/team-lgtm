@@ -20,6 +20,6 @@ type NewTodo struct {
 }
 
 type TodosReply struct {
-	Todos  []todo.Todo `json:"todos"`
-	Cursor string      `json:"cursor"`
+	Todos  []*todo.Todo `json:"todos"`
+	Cursor string       `json:"cursor"`
 }

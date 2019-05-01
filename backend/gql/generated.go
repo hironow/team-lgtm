@@ -51,6 +51,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		Me    func(childComplexity int) int
 		Todos func(childComplexity int, cursor *string) int
 	}
 
@@ -79,6 +80,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Todos(ctx context.Context, cursor *string) (*TodosReply, error)
+	Me(ctx context.Context) (*user.User, error)
 }
 type TodoResolver interface {
 	User(ctx context.Context, obj *todo.Todo) (*user.User, error)
@@ -134,6 +136,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SignUp(childComplexity, args["input"].(NewSignUp)), true
+
+	case "Query.Me":
+		if e.complexity.Query.Me == nil {
+			break
+		}
+
+		return e.complexity.Query.Me(childComplexity), true
 
 	case "Query.Todos":
 		if e.complexity.Query.Todos == nil {
@@ -293,12 +302,13 @@ type User {
 }
 
 type TodosReply {
-    todos: [Todo!]
+    todos: [Todo]!
     cursor: String!
 }
 
 type Query {
     todos(cursor: String): TodosReply!
+    me: User
 }
 
 input NewTodo {
@@ -563,6 +573,30 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 	return ec.marshalNTodosReply2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐTodosReply(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Me(rctx)
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*user.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -742,12 +776,15 @@ func (ec *executionContext) _TodosReply_todos(ctx context.Context, field graphql
 		return obj.Todos, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]todo.Todo)
+	res := resTmp.([]*todo.Todo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOTodo2ᚕgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx, field.Selections, res)
+	return ec.marshalNTodo2ᚕᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TodosReply_cursor(ctx context.Context, field graphql.CollectedField, obj *TodosReply) graphql.Marshaler {
@@ -1800,6 +1837,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "me":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_me(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -1879,6 +1927,9 @@ func (ec *executionContext) _TodosReply(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = graphql.MarshalString("TodosReply")
 		case "todos":
 			out.Values[i] = ec._TodosReply_todos(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "cursor":
 			out.Values[i] = ec._TodosReply_cursor(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -2212,6 +2263,43 @@ func (ec *executionContext) marshalNTodo2githubᚗcomᚋhironowᚋteamᚑlgtmᚋ
 	return ec._Todo(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNTodo2ᚕᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx context.Context, sel ast.SelectionSet, v []*todo.Todo) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOTodo2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx context.Context, sel ast.SelectionSet, v *todo.Todo) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
@@ -2510,44 +2598,26 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return ec.marshalOString2string(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOTodo2ᚕgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx context.Context, sel ast.SelectionSet, v []todo.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalOTodo2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx context.Context, sel ast.SelectionSet, v todo.Todo) graphql.Marshaler {
+	return ec._Todo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOTodo2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx context.Context, sel ast.SelectionSet, v *todo.Todo) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNTodo2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+	return ec._Todo(ctx, sel, v)
+}
 
+func (ec *executionContext) marshalOUser2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v user.User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v *user.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
 	}
-	wg.Wait()
-	return ret
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

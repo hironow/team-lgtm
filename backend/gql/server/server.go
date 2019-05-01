@@ -53,10 +53,10 @@ func main() {
 
 	router := chi.NewRouter()
 
-	router.Use(middleware.FirebaseAuth(fbAuthClient))
+	// router.Use(middleware.FirebaseAuth(fbAuthClient))
 
 	router.Handle("/", handler.Playground("TeamLGTM GraphQL playground", "/query"))
-	router.Handle("/query", handler.GraphQL(gql.NewExecutableSchema(gql.Config{Resolvers: resolver})))
+	router.With(middleware.FirebaseAuth(fbAuthClient)).Handle("/query", handler.GraphQL(gql.NewExecutableSchema(gql.Config{Resolvers: resolver})))
 
 	log.Printf("connect to http://localhost:%d/ for TeamLGTM GraphQL playground", env.Port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", env.Port), router))

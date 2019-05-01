@@ -40,7 +40,7 @@ func (repo *userRepository) Put(ctx context.Context, u *user.User) error {
 	return nil
 }
 
-func (repo *userRepository) List(ctx context.Context, cursor string, limit int) ([]user.User, string, error) {
+func (repo *userRepository) List(ctx context.Context, cursor string, limit int) ([]*user.User, string, error) {
 	log.Printf("clouddatastore userRepository List")
 	q := datastore.NewQuery("User")
 	if cursor != "" {
@@ -52,7 +52,7 @@ func (repo *userRepository) List(ctx context.Context, cursor string, limit int) 
 	}
 	q = q.Limit(limit)
 
-	var el []user.User
+	var el []*user.User
 	it := repo.dsClient.Run(ctx, q)
 	for {
 		var e user.User
@@ -61,7 +61,7 @@ func (repo *userRepository) List(ctx context.Context, cursor string, limit int) 
 		} else if err != nil {
 			log.Fatal(err)
 		}
-		el = append(el, e)
+		el = append(el, &e)
 	}
 	nextCursor, err := it.Cursor()
 	if err != nil {

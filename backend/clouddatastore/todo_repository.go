@@ -45,7 +45,7 @@ func (repo *todoRepository) Put(ctx context.Context, t *todo.Todo, user *user.Us
 	return nil
 }
 
-func (repo *todoRepository) List(ctx context.Context, cursor string, limit int, u *user.User) ([]todo.Todo, string, error) {
+func (repo *todoRepository) List(ctx context.Context, cursor string, limit int, u *user.User) ([]*todo.Todo, string, error) {
 	log.Printf("clouddatastore todoRepository List")
 	q := datastore.NewQuery("Todo").Ancestor(repo.parentKey(u))
 	if cursor != "" {
@@ -57,7 +57,7 @@ func (repo *todoRepository) List(ctx context.Context, cursor string, limit int, 
 	}
 	q = q.Limit(limit)
 
-	var el []todo.Todo
+	var el []*todo.Todo
 	it := repo.dsClient.Run(ctx, q)
 	for {
 		var e todo.Todo
@@ -66,7 +66,7 @@ func (repo *todoRepository) List(ctx context.Context, cursor string, limit int, 
 		} else if err != nil {
 			log.Fatal(err)
 		}
-		el = append(el, e)
+		el = append(el, &e)
 	}
 	nextCursor, err := it.Cursor()
 	if err != nil {
