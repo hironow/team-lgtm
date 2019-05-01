@@ -3,6 +3,7 @@ import * as ReactDOM from "react-dom";
 import "normalize.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
 
+// @ts-ignore
 import { Button } from "@blueprintjs/core";
 
 // HelloProps
