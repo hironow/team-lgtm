@@ -17,3 +17,5 @@ models:
     model: github.com/hironow/team-lgtm/backend/user.User
   Todo:
     model: github.com/hironow/team-lgtm/backend/todo.Todo
+  LGTM:
+    model: github.com/hironow/team-lgtm/backend/lgtm.LGTM

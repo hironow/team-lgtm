@@ -3,8 +3,19 @@
 package gql
 
 import (
+	"github.com/hironow/team-lgtm/backend/lgtm"
 	"github.com/hironow/team-lgtm/backend/todo"
 )
+
+type LGTMConnection struct {
+	Cursor  string       `json:"cursor"`
+	HasMore bool         `json:"hasMore"`
+	Lgtms   []*lgtm.LGTM `json:"lgtms"`
+}
+
+type NewLgtm struct {
+	Description string `json:"description"`
+}
 
 type NewSignIn struct {
 	Name *string `json:"name"`
@@ -15,11 +26,11 @@ type NewSignUp struct {
 }
 
 type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+	Text string `json:"text"`
 }
 
-type TodosReply struct {
-	Todos  []*todo.Todo `json:"todos"`
-	Cursor string       `json:"cursor"`
+type TodoConnection struct {
+	Cursor  string       `json:"cursor"`
+	HasMore bool         `json:"hasMore"`
+	Todos   []*todo.Todo `json:"todos"`
 }

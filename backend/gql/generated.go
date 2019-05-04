@@ -11,6 +11,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/hironow/team-lgtm/backend/lgtm"
 	"github.com/hironow/team-lgtm/backend/todo"
 	"github.com/hironow/team-lgtm/backend/user"
 	"github.com/vektah/gqlparser"
@@ -37,20 +38,32 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
-	Todo() TodoResolver
 }
 
 type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Lgtm struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+	}
+
+	LGTMConnection struct {
+		Cursor  func(childComplexity int) int
+		HasMore func(childComplexity int) int
+		Lgtms   func(childComplexity int) int
+	}
+
 	Mutation struct {
+		CreateLgtm func(childComplexity int, input NewLgtm) int
 		CreateTodo func(childComplexity int, input NewTodo) int
 		SignIn     func(childComplexity int, input NewSignIn) int
 		SignUp     func(childComplexity int, input NewSignUp) int
 	}
 
 	Query struct {
+		Lgtms func(childComplexity int, cursor *string) int
 		Me    func(childComplexity int) int
 		Todos func(childComplexity int, cursor *string) int
 	}
@@ -59,12 +72,12 @@ type ComplexityRoot struct {
 		Done func(childComplexity int) int
 		ID   func(childComplexity int) int
 		Text func(childComplexity int) int
-		User func(childComplexity int) int
 	}
 
-	TodosReply struct {
-		Cursor func(childComplexity int) int
-		Todos  func(childComplexity int) int
+	TodoConnection struct {
+		Cursor  func(childComplexity int) int
+		HasMore func(childComplexity int) int
+		Todos   func(childComplexity int) int
 	}
 
 	User struct {
@@ -74,16 +87,15 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateTodo(ctx context.Context, input NewTodo) (*todo.Todo, error)
 	SignUp(ctx context.Context, input NewSignUp) (*user.User, error)
 	SignIn(ctx context.Context, input NewSignIn) (*user.User, error)
+	CreateTodo(ctx context.Context, input NewTodo) (*todo.Todo, error)
+	CreateLgtm(ctx context.Context, input NewLgtm) (*lgtm.LGTM, error)
 }
 type QueryResolver interface {
-	Todos(ctx context.Context, cursor *string) (*TodosReply, error)
 	Me(ctx context.Context) (*user.User, error)
-}
-type TodoResolver interface {
-	User(ctx context.Context, obj *todo.Todo) (*user.User, error)
+	Todos(ctx context.Context, cursor *string) (*TodoConnection, error)
+	Lgtms(ctx context.Context, cursor *string) (*LGTMConnection, error)
 }
 
 type executableSchema struct {
@@ -100,6 +112,53 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "LGTM.Description":
+		if e.complexity.Lgtm.Description == nil {
+			break
+		}
+
+		return e.complexity.Lgtm.Description(childComplexity), true
+
+	case "LGTM.ID":
+		if e.complexity.Lgtm.ID == nil {
+			break
+		}
+
+		return e.complexity.Lgtm.ID(childComplexity), true
+
+	case "LGTMConnection.Cursor":
+		if e.complexity.LGTMConnection.Cursor == nil {
+			break
+		}
+
+		return e.complexity.LGTMConnection.Cursor(childComplexity), true
+
+	case "LGTMConnection.HasMore":
+		if e.complexity.LGTMConnection.HasMore == nil {
+			break
+		}
+
+		return e.complexity.LGTMConnection.HasMore(childComplexity), true
+
+	case "LGTMConnection.Lgtms":
+		if e.complexity.LGTMConnection.Lgtms == nil {
+			break
+		}
+
+		return e.complexity.LGTMConnection.Lgtms(childComplexity), true
+
+	case "Mutation.CreateLgtm":
+		if e.complexity.Mutation.CreateLgtm == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createLGTM_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateLgtm(childComplexity, args["input"].(NewLgtm)), true
 
 	case "Mutation.CreateTodo":
 		if e.complexity.Mutation.CreateTodo == nil {
@@ -136,6 +195,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SignUp(childComplexity, args["input"].(NewSignUp)), true
+
+	case "Query.Lgtms":
+		if e.complexity.Query.Lgtms == nil {
+			break
+		}
+
+		args, err := ec.field_Query_lgtms_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Lgtms(childComplexity, args["cursor"].(*string)), true
 
 	case "Query.Me":
 		if e.complexity.Query.Me == nil {
@@ -177,26 +248,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.Text(childComplexity), true
 
-	case "Todo.User":
-		if e.complexity.Todo.User == nil {
+	case "TodoConnection.Cursor":
+		if e.complexity.TodoConnection.Cursor == nil {
 			break
 		}
 
-		return e.complexity.Todo.User(childComplexity), true
+		return e.complexity.TodoConnection.Cursor(childComplexity), true
 
-	case "TodosReply.Cursor":
-		if e.complexity.TodosReply.Cursor == nil {
+	case "TodoConnection.HasMore":
+		if e.complexity.TodoConnection.HasMore == nil {
 			break
 		}
 
-		return e.complexity.TodosReply.Cursor(childComplexity), true
+		return e.complexity.TodoConnection.HasMore(childComplexity), true
 
-	case "TodosReply.Todos":
-		if e.complexity.TodosReply.Todos == nil {
+	case "TodoConnection.Todos":
+		if e.complexity.TodoConnection.Todos == nil {
 			break
 		}
 
-		return e.complexity.TodosReply.Todos(childComplexity), true
+		return e.complexity.TodoConnection.Todos(childComplexity), true
 
 	case "User.ID":
 		if e.complexity.User.ID == nil {
@@ -289,11 +360,17 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
-	&ast.Source{Name: "schema.graphql", Input: `type Todo {
-    id: ID!
-    text: String!
-    done: Boolean!
-    user: User!
+	&ast.Source{Name: "schema.graphql", Input: `type Query {
+    me: User
+    todos(cursor: String): TodoConnection!
+    lgtms(cursor: String): LGTMConnection!
+}
+
+type Mutation {
+    signUp(input: NewSignUp!): User!
+    signIn(input: NewSignIn!): User!
+    createTodo(input: NewTodo!): Todo!
+    createLGTM(input: NewLGTM!): LGTM!
 }
 
 type User {
@@ -301,19 +378,27 @@ type User {
     name: String!
 }
 
-type TodosReply {
-    todos: [Todo]!
-    cursor: String!
-}
-
-type Query {
-    todos(cursor: String): TodosReply!
-    me: User
-}
-
-input NewTodo {
+type Todo {
+    id: ID!
     text: String!
-    userId: String!
+    done: Boolean!
+}
+
+type LGTM {
+    id: ID!
+    description: String!
+}
+
+type TodoConnection {
+    cursor: String!
+    hasMore: Boolean!
+    todos: [Todo]!
+}
+
+type LGTMConnection {
+    cursor: String!
+    hasMore: Boolean!
+    lgtms: [LGTM]!
 }
 
 input NewSignUp {
@@ -324,16 +409,35 @@ input NewSignIn {
     name: String
 }
 
-type Mutation {
-    createTodo(input: NewTodo!): Todo!
-    signUp(input: NewSignUp!): User!
-    signIn(input: NewSignIn!): User!
-}`},
+input NewTodo {
+    text: String!
+}
+
+input NewLGTM {
+    description: String!
+}
+
+
+`},
 )
 
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createLGTM_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 NewLgtm
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNNewLGTM2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐNewLgtm(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -391,6 +495,20 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_lgtms_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["cursor"]; ok {
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cursor"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_todos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -437,27 +555,20 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+func (ec *executionContext) _LGTM_id(ctx context.Context, field graphql.CollectedField, obj *lgtm.LGTM) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
-		Object:   "Mutation",
+		Object:   "LGTM",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createTodo_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTodo(rctx, args["input"].(NewTodo))
+		return obj.ID, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -465,10 +576,118 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*todo.Todo)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTodo2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LGTM_description(ctx context.Context, field graphql.CollectedField, obj *lgtm.LGTM) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "LGTM",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LGTMConnection_cursor(ctx context.Context, field graphql.CollectedField, obj *LGTMConnection) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "LGTMConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LGTMConnection_hasMore(ctx context.Context, field graphql.CollectedField, obj *LGTMConnection) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "LGTMConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasMore, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LGTMConnection_lgtms(ctx context.Context, field graphql.CollectedField, obj *LGTMConnection) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "LGTMConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Lgtms, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*lgtm.LGTM)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNLGTM2ᚕᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋlgtmᚐLGTM(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_signUp(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -539,6 +758,98 @@ func (ec *executionContext) _Mutation_signIn(ctx context.Context, field graphql.
 	return ec.marshalNUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createTodo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateTodo(rctx, args["input"].(NewTodo))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*todo.Todo)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNTodo2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createLGTM(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createLGTM_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateLgtm(rctx, args["input"].(NewLgtm))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*lgtm.LGTM)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNLGTM2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋlgtmᚐLGTM(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Me(rctx)
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*user.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -567,13 +878,13 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*TodosReply)
+	res := resTmp.(*TodoConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTodosReply2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐTodosReply(ctx, field.Selections, res)
+	return ec.marshalNTodoConnection2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐTodoConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+func (ec *executionContext) _Query_lgtms(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -583,18 +894,28 @@ func (ec *executionContext) _Query_me(ctx context.Context, field graphql.Collect
 		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_lgtms_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Me(rctx)
+		return ec.resolvers.Query().Lgtms(rctx, args["cursor"].(*string))
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*user.User)
+	res := resTmp.(*LGTMConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx, field.Selections, res)
+	return ec.marshalNLGTMConnection2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐLGTMConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -733,65 +1054,11 @@ func (ec *executionContext) _Todo_done(ctx context.Context, field graphql.Collec
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Todo_user(ctx context.Context, field graphql.CollectedField, obj *todo.Todo) graphql.Marshaler {
+func (ec *executionContext) _TodoConnection_cursor(ctx context.Context, field graphql.CollectedField, obj *TodoConnection) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
-		Object:   "Todo",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Todo().User(rctx, obj)
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*user.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TodosReply_todos(ctx context.Context, field graphql.CollectedField, obj *TodosReply) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object:   "TodosReply",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Todos, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*todo.Todo)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTodo2ᚕᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TodosReply_cursor(ctx context.Context, field graphql.CollectedField, obj *TodosReply) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object:   "TodosReply",
+		Object:   "TodoConnection",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -812,6 +1079,60 @@ func (ec *executionContext) _TodosReply_cursor(ctx context.Context, field graphq
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TodoConnection_hasMore(ctx context.Context, field graphql.CollectedField, obj *TodoConnection) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "TodoConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasMore, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TodoConnection_todos(ctx context.Context, field graphql.CollectedField, obj *TodoConnection) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "TodoConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Todos, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*todo.Todo)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNTodo2ᚕᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋtodoᚐTodo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *user.User) graphql.Marshaler {
@@ -1699,6 +2020,24 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputNewLGTM(ctx context.Context, v interface{}) (NewLgtm, error) {
+	var it NewLgtm
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "description":
+			var err error
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewSignIn(ctx context.Context, v interface{}) (NewSignIn, error) {
 	var it NewSignIn
 	var asMap = v.(map[string]interface{})
@@ -1747,12 +2086,6 @@ func (ec *executionContext) unmarshalInputNewTodo(ctx context.Context, v interfa
 			if err != nil {
 				return it, err
 			}
-		case "userId":
-			var err error
-			it.UserID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		}
 	}
 
@@ -1766,6 +2099,75 @@ func (ec *executionContext) unmarshalInputNewTodo(ctx context.Context, v interfa
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var lGTMImplementors = []string{"LGTM"}
+
+func (ec *executionContext) _LGTM(ctx context.Context, sel ast.SelectionSet, obj *lgtm.LGTM) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, lGTMImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LGTM")
+		case "id":
+			out.Values[i] = ec._LGTM_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "description":
+			out.Values[i] = ec._LGTM_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var lGTMConnectionImplementors = []string{"LGTMConnection"}
+
+func (ec *executionContext) _LGTMConnection(ctx context.Context, sel ast.SelectionSet, obj *LGTMConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, lGTMConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LGTMConnection")
+		case "cursor":
+			out.Values[i] = ec._LGTMConnection_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "hasMore":
+			out.Values[i] = ec._LGTMConnection_hasMore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "lgtms":
+			out.Values[i] = ec._LGTMConnection_lgtms(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
 
 var mutationImplementors = []string{"Mutation"}
 
@@ -1782,11 +2184,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "createTodo":
-			out.Values[i] = ec._Mutation_createTodo(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "signUp":
 			out.Values[i] = ec._Mutation_signUp(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -1794,6 +2191,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "signIn":
 			out.Values[i] = ec._Mutation_signIn(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "createTodo":
+			out.Values[i] = ec._Mutation_createTodo(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "createLGTM":
+			out.Values[i] = ec._Mutation_createLGTM(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -1823,6 +2230,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "me":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_me(ctx, field)
+				return res
+			})
 		case "todos":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -1837,7 +2255,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "me":
+		case "lgtms":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -1845,7 +2263,10 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_me(ctx, field)
+				res = ec._Query_lgtms(ctx, field)
+				if res == graphql.Null {
+					invalid = true
+				}
 				return res
 			})
 		case "__type":
@@ -1889,20 +2310,6 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "user":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Todo_user(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1914,24 +2321,29 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
-var todosReplyImplementors = []string{"TodosReply"}
+var todoConnectionImplementors = []string{"TodoConnection"}
 
-func (ec *executionContext) _TodosReply(ctx context.Context, sel ast.SelectionSet, obj *TodosReply) graphql.Marshaler {
-	fields := graphql.CollectFields(ctx, sel, todosReplyImplementors)
+func (ec *executionContext) _TodoConnection(ctx context.Context, sel ast.SelectionSet, obj *TodoConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, todoConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	invalid := false
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("TodosReply")
-		case "todos":
-			out.Values[i] = ec._TodosReply_todos(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("TodoConnection")
+		case "cursor":
+			out.Values[i] = ec._TodoConnection_cursor(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "cursor":
-			out.Values[i] = ec._TodosReply_cursor(ctx, field, obj)
+		case "hasMore":
+			out.Values[i] = ec._TodoConnection_hasMore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "todos":
+			out.Values[i] = ec._TodoConnection_todos(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -2239,6 +2651,75 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return graphql.MarshalID(v)
 }
 
+func (ec *executionContext) marshalNLGTM2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋlgtmᚐLGTM(ctx context.Context, sel ast.SelectionSet, v lgtm.LGTM) graphql.Marshaler {
+	return ec._LGTM(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLGTM2ᚕᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋlgtmᚐLGTM(ctx context.Context, sel ast.SelectionSet, v []*lgtm.LGTM) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOLGTM2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋlgtmᚐLGTM(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNLGTM2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋlgtmᚐLGTM(ctx context.Context, sel ast.SelectionSet, v *lgtm.LGTM) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._LGTM(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNLGTMConnection2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐLGTMConnection(ctx context.Context, sel ast.SelectionSet, v LGTMConnection) graphql.Marshaler {
+	return ec._LGTMConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLGTMConnection2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐLGTMConnection(ctx context.Context, sel ast.SelectionSet, v *LGTMConnection) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._LGTMConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNNewLGTM2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐNewLgtm(ctx context.Context, v interface{}) (NewLgtm, error) {
+	return ec.unmarshalInputNewLGTM(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNNewSignIn2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐNewSignIn(ctx context.Context, v interface{}) (NewSignIn, error) {
 	return ec.unmarshalInputNewSignIn(ctx, v)
 }
@@ -2310,18 +2791,18 @@ func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtm
 	return ec._Todo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTodosReply2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐTodosReply(ctx context.Context, sel ast.SelectionSet, v TodosReply) graphql.Marshaler {
-	return ec._TodosReply(ctx, sel, &v)
+func (ec *executionContext) marshalNTodoConnection2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v TodoConnection) graphql.Marshaler {
+	return ec._TodoConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTodosReply2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐTodosReply(ctx context.Context, sel ast.SelectionSet, v *TodosReply) graphql.Marshaler {
+func (ec *executionContext) marshalNTodoConnection2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋgqlᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v *TodoConnection) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	return ec._TodosReply(ctx, sel, v)
+	return ec._TodoConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v user.User) graphql.Marshaler {
@@ -2573,6 +3054,17 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOLGTM2githubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋlgtmᚐLGTM(ctx context.Context, sel ast.SelectionSet, v lgtm.LGTM) graphql.Marshaler {
+	return ec._LGTM(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOLGTM2ᚖgithubᚗcomᚋhironowᚋteamᚑlgtmᚋbackendᚋlgtmᚐLGTM(ctx context.Context, sel ast.SelectionSet, v *lgtm.LGTM) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._LGTM(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
