@@ -9,7 +9,7 @@ COPY go.sum .
 RUN go mod download
 
 # Build binary
-COPY . .
+COPY backend ./backend
 RUN cd backend && CGO_ENABLED=0 GOOS=linux go build -v -o backend gql/server/server.go
 
 # Use a Docker multi-stage build to create a lean production image.

@@ -9,7 +9,7 @@ COPY go.sum .
 RUN go mod download
 
 # Build binary
-COPY . .
+COPY frontend ./frontend
 RUN cd frontend && CGO_ENABLED=0 GOOS=linux go build -v -o frontend
 
 # Use a Docker multi-stage build to create a lean production image.
