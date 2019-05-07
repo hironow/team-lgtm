@@ -48,23 +48,6 @@ func NewResolver(dsClient *datastore.Client) (ResolverRoot, error) {
 		lgtmRepository = memory.NewLGTMRepository()
 	}
 
-	// check user
-	{
-		users, _, err := userRepository.List(context.Background(), "", 10)
-		if err != nil {
-			panic(err)
-		}
-		log.Printf("%+v", users)
-	}
-
-	// dummy user
-	{
-		u := &user.User{ID: "user1", Name: "ユーザ壱"}
-		if err := userRepository.Put(context.Background(), u); err != nil {
-			panic(err)
-		}
-	}
-
 	return &Resolver{
 		userRepository: userRepository,
 		todoRepository: todoRepository,
