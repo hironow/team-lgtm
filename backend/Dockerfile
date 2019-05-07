@@ -16,6 +16,10 @@ RUN cd backend && CGO_ENABLED=0 GOOS=linux go build -v -o backend gql/server/ser
 # https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
 FROM alpine
 
+# Add ca-certificates
+# https://github.com/googleapis/google-cloud-go/issues/928
+RUN apk --no-cache --update add ca-certificates
+
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /go/src/github.com/hironow/team-lgtm/backend/backend /backend
 
