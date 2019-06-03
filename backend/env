@@ -1,3 +1,2 @@
 USE_DATASTORE=1
 DATASTORE_PROJECT_ID=team-lgtm-dev
-GOOGLE_APPLICATION_CREDENTIALS=/home/team-lgtm-dev-dd1cbd5fcf8e.json
