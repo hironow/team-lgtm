@@ -8,13 +8,10 @@ import (
 	"os"
 
 	"cloud.google.com/go/datastore"
-	firebase "firebase.google.com/go"
-	"firebase.google.com/go/auth"
 	"github.com/99designs/gqlgen/handler"
 	"github.com/go-chi/chi"
 	"github.com/hironow/team-lgtm/backend/config"
 	"github.com/hironow/team-lgtm/backend/gql"
-	"github.com/hironow/team-lgtm/backend/gql/middleware"
 )
 
 func main() {
@@ -33,18 +30,18 @@ func main() {
 			log.Fatal(err.Error())
 		}
 	}
-	var fbAuthClient *auth.Client
-	{
-		var err error
-		fbApp, err := firebase.NewApp(ctx, nil)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		fbAuthClient, err = fbApp.Auth(ctx)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-	}
+	// var fbAuthClient *auth.Client
+	// {
+	// 	var err error
+	// 	fbApp, err := firebase.NewApp(ctx, nil)
+	// 	if err != nil {
+	// 		log.Fatal(err.Error())
+	// 	}
+	// 	fbAuthClient, err = fbApp.Auth(ctx)
+	// 	if err != nil {
+	// 		log.Fatal(err.Error())
+	// 	}
+	// }
 
 	resolver, err := gql.NewResolver(dsClient)
 	if err != nil {
@@ -56,7 +53,8 @@ func main() {
 	// router.Use(middleware.FirebaseAuth(fbAuthClient))
 
 	router.Handle("/", handler.Playground("TeamLGTM GraphQL playground", "/query"))
-	router.With(middleware.FirebaseAuth(fbAuthClient)).Handle("/query", handler.GraphQL(gql.NewExecutableSchema(gql.Config{Resolvers: resolver})))
+	// router.With(middleware.FirebaseAuth(fbAuthClient)).
+	router.Handle("/query", handler.GraphQL(gql.NewExecutableSchema(gql.Config{Resolvers: resolver})))
 
 	log.Printf("connect to http://localhost:%d/ for TeamLGTM GraphQL playground", env.Port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", env.Port), router))
