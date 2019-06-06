@@ -1,2 +1,2 @@
 docker run --rm --publish 80:8080 --env-file=./backend/env.local --volume $PWD/local:/home gcr.io/team-lgtm-dev/backend
-#docker run --rm --publish 80:8080 --env-file=./frontend/env gcr.io/team-lgtm-dev/frontend
+# docker run --rm --publish 80:8080 --env-file=./frontend/env.local gcr.io/team-lgtm-dev/frontend
