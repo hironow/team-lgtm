@@ -1,7 +1,0 @@
-steps:
-- name: 'gcr.io/cloud-builders/go'
-  args: ['mod', 'download']
-  env: ['PROJECT_ROOT=team-lgtm', 'GO111MODULE=on']
-- name: 'gcr.io/cloud-builders/go'
-  args: ['test', './...']
-  env: ['PROJECT_ROOT=team-lgtm', 'GO111MODULE=on']
