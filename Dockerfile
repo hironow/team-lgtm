@@ -10,5 +10,5 @@ RUN go mod download
 
 COPY . .
 
-RUN go test ./...
-
+# Run test
+CMD ["go", "test", "./..."]
